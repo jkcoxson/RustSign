@@ -1,0 +1,3 @@
+[submodule "external/AltServer-Linux"]
+	path = external/AltServer-Linux
+	url = git@github.com:NyaMisty/AltServer-Linux.git

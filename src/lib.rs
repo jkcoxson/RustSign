@@ -13,5 +13,6 @@ mod app_id;
 mod apple_api;
 mod application;
 mod certificate;
-mod sign;
+mod error;
+pub mod sign;
 mod team;

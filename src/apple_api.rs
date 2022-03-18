@@ -1,6 +1,6 @@
 // jkcoxson
 
-use crate::anisette_data::AnisetteData;
+use crate::{account::Account, anisette_data::AnisetteData};
 
 const k_authentication_protocol_version: &str = "A1234";
 const k_protocol_version: &str = "QH65B2";
@@ -12,6 +12,6 @@ pub fn authenticate(
     password: String,
     anisette: AnisetteData,
     verification_callback: &dyn Fn() -> u16,
-) -> Result<(), ()> {
+) -> Result<Account, ()> {
     todo!()
 }
