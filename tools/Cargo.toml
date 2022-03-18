@@ -1,0 +1,12 @@
+[package]
+name = "tools"
+version = "0.1.0"
+publish = false
+edition = "2018"
+
+[dependencies]
+rust-sign = { version = "*", path = "../" }
+
+[[bin]]
+name = "sign"
+path = "sign.rs"

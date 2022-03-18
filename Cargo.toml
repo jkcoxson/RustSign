@@ -1,0 +1,16 @@
+[package]
+name = "rust-sign"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rusty_libimobiledevice = { version = "*", features = [ "static" ], path = "../jit/rusty_libimobiledevice" }
+reqwest = { version = "*", features = [ "blocking" ] }
+serde = { version = "*", features = [ "derive" ] }
+serde_json = { version = "*" }
+libc = { version = "*" }
+
+[build-dependencies]
+cc = { version = "*" }
