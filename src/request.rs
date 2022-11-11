@@ -2,13 +2,9 @@
 
 use std::sync::Arc;
 
-use pbkdf2::{
-    password_hash::{PasswordHasher, SaltString},
-    Params, Pbkdf2,
-};
 use rustls::{ClientConfig, RootCertStore};
 use serde::{Deserialize, Serialize};
-use sha2::Sha256;
+use sha2::{Digest, Sha256};
 use srp::{
     client::{SrpClient, SrpClientVerifier},
     groups::G_2048,
@@ -171,24 +167,20 @@ impl GsaClient {
         let iters = res.get("i").unwrap().as_signed_integer().unwrap();
         let c = res.get("c").unwrap().as_string().unwrap();
 
-        let salt_string = SaltString::b64_encode(salt).unwrap();
+        let mut password_hasher = sha2::Sha256::new();
+        password_hasher.update(&password.as_bytes());
+        let hashed_password = password_hasher.finalize();
 
-        let password = Pbkdf2
-            .hash_password_customized(
-                password.as_bytes(),
-                None,
-                None,
-                Params {
-                    rounds: iters as u32,
-                    output_length: 32,
-                },
-                &salt_string,
-            )
-            .unwrap()
-            .to_string();
+        let mut password_buf = [0u8; 32];
+        pbkdf2::pbkdf2::<hmac::Hmac<Sha256>>(
+            &hashed_password,
+            salt,
+            iters as u32,
+            &mut password_buf,
+        );
 
         let verifier: SrpClientVerifier<Sha256> = client
-            .process_reply(&a, username.as_bytes(), password.as_bytes(), salt, b_pub)
+            .process_reply(&a, &[], &password_buf, salt, b_pub)
             .unwrap();
 
         let m = verifier.proof();
