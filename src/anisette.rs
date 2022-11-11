@@ -6,28 +6,28 @@ use crate::Error;
 
 pub const SIDELOADLY_ANISETTE: &str = "https://sideloadly.io/anisette/irGb3Quww8zrhgqnzmrx";
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AnisetteData {
     #[serde(rename(deserialize = "X-Apple-I-Client-Time"))]
-    x_apple_i_client_time: String,
-    #[serde(rename(deserialize = "X-Apple-I-MD"), with = "base64")]
-    x_apple_i_md: Vec<u8>,
+    pub x_apple_i_client_time: String,
+    #[serde(rename(deserialize = "X-Apple-I-MD"))]
+    pub x_apple_i_md: String,
     #[serde(rename(deserialize = "X-Apple-I-MD-LU"))]
-    x_apple_i_md_lu: String,
+    pub x_apple_i_md_lu: String,
     #[serde(rename(deserialize = "X-Apple-I-MD-M"))]
-    x_apple_i_md_m: String,
+    pub x_apple_i_md_m: String,
     #[serde(rename(deserialize = "X-Apple-I-MD-RINFO"))]
-    x_apple_i_md_rinfo: String,
+    pub x_apple_i_md_rinfo: String,
     #[serde(rename(deserialize = "X-Apple-I-SRL-NO"))]
-    x_apple_i_srl_no: String,
+    pub x_apple_i_srl_no: String,
     #[serde(rename(deserialize = "X-Apple-I-TimeZone"))]
-    x_apple_i_timezone: String,
+    pub x_apple_i_timezone: String,
     #[serde(rename(deserialize = "X-Apple-Locale"))]
-    x_apple_locale: String,
+    pub x_apple_locale: String,
     #[serde(rename(deserialize = "X-MMe-Client-Info"))]
-    x_mme_client_info: String,
+    pub x_mme_client_info: String,
     #[serde(rename(deserialize = "X-Mme-Device-Id"))]
-    x_mme_device_id: String,
+    pub x_mme_device_id: String,
 }
 
 impl AnisetteData {
@@ -52,20 +52,54 @@ impl AnisetteData {
 
         Ok(body)
     }
-}
 
-// Thanks internet
-mod base64 {
-    use serde::{Deserialize, Serialize};
-    use serde::{Deserializer, Serializer};
+    pub fn to_cpd(&self) -> plist::Dictionary {
+        let mut cpd = plist::Dictionary::new();
+        cpd.insert(
+            "X-Apple-I-Client-Time".to_owned(),
+            plist::Value::String(self.x_apple_i_client_time.clone()),
+        );
+        cpd.insert(
+            "X-Apple-I-MD".to_owned(),
+            plist::Value::String(self.x_apple_i_md.clone()),
+        );
+        cpd.insert(
+            "X-Apple-I-MD-LU".to_owned(),
+            plist::Value::String(self.x_apple_i_md_lu.clone()),
+        );
+        cpd.insert(
+            "X-Apple-I-MD-M".to_owned(),
+            plist::Value::String(self.x_apple_i_md_m.clone()),
+        );
 
-    pub fn serialize<S: Serializer>(v: &Vec<u8>, s: S) -> Result<S::Ok, S::Error> {
-        let base64 = base64::encode(v);
-        String::serialize(&base64, s)
-    }
+        let rinfo = self.x_apple_i_md_rinfo.parse::<u32>().unwrap();
+        cpd.insert(
+            "X-Apple-I-MD-RINFO".to_owned(),
+            plist::Value::Integer(rinfo.into()),
+        );
+        cpd.insert(
+            "X-Apple-I-SRL-NO".to_owned(),
+            plist::Value::String(self.x_apple_i_srl_no.clone()),
+        );
+        cpd.insert(
+            "X-Apple-I-TimeZone".to_owned(),
+            plist::Value::String(self.x_apple_i_timezone.clone()),
+        );
+        cpd.insert(
+            "X-Apple-Locale".to_owned(),
+            plist::Value::String(self.x_apple_locale.clone()),
+        );
+        cpd.insert(
+            "X-Mme-Device-Id".to_owned(),
+            plist::Value::String(self.x_mme_device_id.clone()),
+        );
+        cpd.insert("bootstrap".to_owned(), plist::Value::Boolean(true));
+        cpd.insert("icscrec".to_owned(), plist::Value::Boolean(true));
+        cpd.insert("loc".to_owned(), plist::Value::String("en_GB".to_owned()));
+        cpd.insert("pbe".to_owned(), plist::Value::Boolean(false));
+        cpd.insert("prkgen".to_owned(), plist::Value::Boolean(true));
+        cpd.insert("svct".to_owned(), plist::Value::String("iCloud".to_owned()));
 
-    pub fn deserialize<'de, D: Deserializer<'de>>(d: D) -> Result<Vec<u8>, D::Error> {
-        let base64 = String::deserialize(d)?;
-        base64::decode(base64.as_bytes()).map_err(serde::de::Error::custom)
+        cpd
     }
 }
